@@ -22,8 +22,8 @@ async fn async_main() -> anyhow::Result<()> {
     const SESSION_FILE: &str = "bot.session";
     let client = Client::connect(Config {
         session: Session::load_file_or_create(SESSION_FILE)?,
-        api_id : tg_api_id,
-        api_hash : tg_api_hash.clone().to_string(),
+        api_id: tg_api_id,
+        api_hash: tg_api_hash.clone().to_string(),
         params: Default::default(),
     }).await?;
     if !client.is_authorized().await? {
@@ -33,16 +33,22 @@ async fn async_main() -> anyhow::Result<()> {
         client.sign_in(&token, &code).await?;
         client.session().save_to_file(SESSION_FILE)?;
     }
-    loop{
-        client.invoke(&tl::functions::account::UpdateStatus { offline: false }).await?;
-        std::thread::sleep(std::time::Duration::from_secs(15));
+    loop {
+        if let Err(e) = client.invoke(&tl::functions::account::UpdateStatus { offline: false }).await {
+            println!("{}", e);
+            std::thread::sleep(std::time::Duration::from_secs(3));
+        } else {
+            std::thread::sleep(std::time::Duration::from_secs(15));
+        }
     }
 }
 
 fn main() -> anyhow::Result<()> {
-    runtime::Builder::new_current_thread()
-        .enable_all()
-        .build()?
-        .block_on(async_main())?;
-    Ok(())
+    loop {
+        println!("starting...");
+        runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()?
+            .block_on(async_main())?;
+    }
 }
