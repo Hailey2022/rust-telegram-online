@@ -33,28 +33,22 @@ async fn async_main() -> anyhow::Result<()> {
         client.sign_in(&token, &code).await?;
         client.session().save_to_file(SESSION_FILE)?;
     }
-    // loop {
-    //     if let Err(e) = client.invoke(&tl::functions::account::UpdateStatus { offline: false }).await {
-    //         println!("Error while invoking a raw API call: {}", e);
-    //         std::thread::sleep(std::time::Duration::from_secs(2));
-    //         break
-    //     } else {
-    //         std::thread::sleep(std::time::Duration::from_secs(15));
-    //     }
-    // }
-    // Ok(())
     loop {
         client.invoke(&tl::functions::account::UpdateStatus { offline: false }).await?;
-        std::thread::sleep(std::time::Duration::from_secs(15));
+        tokio::time::sleep(std::time::Duration::from_secs(15)).await;
     }
 }
 
 fn main() -> anyhow::Result<()> {
     loop {
-        runtime::Builder::new_current_thread()
+        match runtime::Builder::new_current_thread()
             .enable_all()
             .build()?
-            .block_on(async_main())?;
+            .block_on(async_main()) {
+            Ok(()) => {}
+            Err(e) => { println!("{}", e) }
+        }
+        std::thread::sleep(std::time::Duration::from_secs(1));
         println!("restarting...");
     }
 }
