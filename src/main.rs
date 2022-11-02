@@ -39,14 +39,12 @@ async fn async_main() -> anyhow::Result<()> {
     }
 }
 
-fn main() -> anyhow::Result<()> {
+fn main() {
     loop {
-        match runtime::Builder::new_current_thread()
-            .enable_all()
-            .build()?
-            .block_on(async_main()) {
-            Ok(()) => {}
-            Err(e) => { println!("{}", e) }
+        if let Ok(rt) = runtime::Builder::new_current_thread().enable_all().build() {
+            if let Err(e) = rt.block_on(async_main()) {
+                eprintln!("{}", e);
+            }
         }
         std::thread::sleep(std::time::Duration::from_secs(1));
         println!("restarting...");
