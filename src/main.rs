@@ -43,7 +43,7 @@ fn main() {
     loop {
         if let Ok(rt) = runtime::Builder::new_current_thread().enable_all().build() {
             if let Err(e) = rt.block_on(async_main()) {
-                eprintln!("{}", e);
+                eprintln!("got err: {e}");
             }
         }
         std::thread::sleep(std::time::Duration::from_secs(1));
